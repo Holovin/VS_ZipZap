@@ -108,7 +108,6 @@ namespace ZipZap {
             output.AddRange(BitConverter.GetBytes(0));
 
             // bytes counter
-            //output.Add(Convert.ToByte (uniqueStreakCountBytes.Length));            
             output.AddRange(uniqueStreakCountBytes);
             output.AddRange(buffer.GetRange(uniqueStreakStart, uniqueStreakCount));
             
@@ -125,8 +124,7 @@ namespace ZipZap {
           output.AddRange(BitConverter.GetBytes(maxStreak));
           Debug.WriteLine(BitConverter.GetBytes(maxStreak).Length);
 
-          // size           
-          //output.Add(Convert.ToByte(maxSeriesSizeBytes.Length));
+          // size
           output.AddRange(maxSeriesSizeBytes);
           Debug.WriteLine(maxSeriesSizeBytes.Length);
           output.AddRange(buffer.GetRange(index, maxSeriesSize));

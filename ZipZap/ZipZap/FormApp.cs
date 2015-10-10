@@ -18,8 +18,13 @@ namespace ZipZap {
 
     private void ButtonOpenFile_Click(object sender, EventArgs e) {
       var dialog = new OpenFileDialog();
+      var saveDialog = new SaveFileDialog();
 
       if (dialog.ShowDialog() != DialogResult.OK || !File.Exists(dialog.FileName)) {
+        return;
+      }
+
+      if (saveDialog.ShowDialog() != DialogResult.OK) {
         return;
       }
      
@@ -31,17 +36,24 @@ namespace ZipZap {
         var rle = new Rle(buffer);
         var bytes = rle.Compress();
 
-        var output = new FileStream("c:/test.output", FileMode.Create);
-        output.Write(bytes, 0, bytes.Length);
-        output.Close();
+        using (var output = new FileStream(saveDialog.FileName, FileMode.Create)) {
+          output.Write(bytes, 0, bytes.Length);
+          output.Close();  
+        }
+        
         MessageBox.Show("Done!");
       }          
     }
 
     private void ButtonDecode_Click(object sender, EventArgs e) {
       var dialog = new OpenFileDialog();
+      var saveDialog = new SaveFileDialog();
 
       if (dialog.ShowDialog() != DialogResult.OK || !File.Exists(dialog.FileName)) {
+        return;
+      }
+
+      if (saveDialog.ShowDialog() != DialogResult.OK) {
         return;
       }
 
@@ -53,9 +65,11 @@ namespace ZipZap {
         var rle = new Rle(buffer);
         var bytes = rle.Decompress();
 
-        var output = new FileStream("c:/test.output", FileMode.Create);
-        output.Write(bytes, 0, bytes.Length);
-        output.Close();
+        using (var output = new FileStream(saveDialog.FileName, FileMode.Create)) {
+          output.Write(bytes, 0, bytes.Length);
+          output.Close();  
+        }
+        
         MessageBox.Show("Done!");
       }
     }
