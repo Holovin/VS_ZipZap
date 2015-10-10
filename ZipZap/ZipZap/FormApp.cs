@@ -12,14 +12,18 @@ using System.Windows.Forms;
 
 namespace ZipZap {
   public partial class FormApp: Form {
+    private const string Filter = "ZipZap archives|*.zipzap";
+      
     public FormApp() {
       InitializeComponent();
     }
 
     private void ButtonOpenFile_Click(object sender, EventArgs e) {
       var dialog = new OpenFileDialog();
-      var saveDialog = new SaveFileDialog();
-
+      var saveDialog = new SaveFileDialog() {
+        Filter = Filter
+      };
+     
       if (dialog.ShowDialog() != DialogResult.OK || !File.Exists(dialog.FileName)) {
         return;
       }
@@ -46,7 +50,10 @@ namespace ZipZap {
     }
 
     private void ButtonDecode_Click(object sender, EventArgs e) {
-      var dialog = new OpenFileDialog();
+      var dialog = new OpenFileDialog() {
+        Filter = Filter
+      };
+
       var saveDialog = new SaveFileDialog();
 
       if (dialog.ShowDialog() != DialogResult.OK || !File.Exists(dialog.FileName)) {
