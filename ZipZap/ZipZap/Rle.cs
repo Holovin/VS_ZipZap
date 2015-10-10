@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ZipZap {
@@ -35,11 +37,13 @@ namespace ZipZap {
       return true;
     }
 
-    public byte[] Decompress() {
+    public byte[] Decode(IProgress<int> progressIndicatorTotal, CancellationToken ctx) {
       var output = new List<byte>();
       var index = 0;
 
       while (index < buffer.Count) {
+        progressIndicatorTotal.Report(index);
+
         var repeatCount = BitConverter.ToInt32(buffer.GetRange(index, 4).ToArray(), 0);
         index += 4;
 
@@ -56,17 +60,24 @@ namespace ZipZap {
 
       return output.ToArray();
     }
-    
-    public byte[] Compress() {
+
+    public async Task<byte[]> Decompress(IProgress<int> progressIndicatorTotal, CancellationToken ctx) {
+      return await Task.Run(() => Decode(progressIndicatorTotal, ctx), ctx);
+    }
+
+    public async Task<byte[]> Compress(IProgress<int> progressIndicatorTotal, CancellationToken ctx) {    
+      return await Task.Run(() => Encode(progressIndicatorTotal, ctx), ctx);     
+    }
+
+    public byte[] Encode(IProgress<int> progressIndicatorTotal, CancellationToken ctx) {
       var output = new List<byte>();
-      var debug = new List<string>();
 
       var index = 0;
       var uniqueStreakStart = -1;
       var uniqueStreakCount = 0;
 
       do {
-        Debug.WriteLine("--- INDEX: " + index);
+        progressIndicatorTotal.Report(index);
 
         var maxSeriesSize = 0;
         var maxStreak = 0;
@@ -78,13 +89,13 @@ namespace ZipZap {
         // find [ABC] - [ABC] from INDEX to file end       
         var halfPart = (buffer.Count - index) / 2;
 
-        while (localIndex < buffer.Count && localSeriesSize <= halfPart)  {
-          while (CompareSeries(localIndex, localSeriesSize)) {            
+        while (localIndex < buffer.Count && localSeriesSize <= halfPart) {
+          //progressIndicatorIter.Report(localIndex);
+
+          while (CompareSeries(localIndex, localSeriesSize)) {
             // if [ABC ABC] then check [ABC [ABC ABC]] 
             localIndex += localSeriesSize;
             localStreak++;
-
-            Debug.WriteLine("-- Find repeat: " + localStreak);
           }
 
           // if "save" length is better then old
@@ -94,10 +105,10 @@ namespace ZipZap {
           }
 
           localIndex = index;
-          localStreak = 0;          
+          localStreak = 0;
           localSeriesSize++;
         }
-                              
+
         // if not found
         if (maxStreak == 0 || maxSeriesSize == 0) {
           // if first time unique - save start index to save
@@ -120,23 +131,21 @@ namespace ZipZap {
             // bytes counter
             output.AddRange(uniqueStreakCountBytes);
             output.AddRange(buffer.GetRange(uniqueStreakStart, uniqueStreakCount));
-            
+
             // reset
             uniqueStreakCount = 0;
             uniqueStreakStart = -1;
           }
-        
+
           // save repeating part
           var maxSeriesSizeBytes = BitConverter.GetBytes(maxSeriesSize);
 
           //// Header
           // repeat count
           output.AddRange(BitConverter.GetBytes(maxStreak));
-          Debug.WriteLine(BitConverter.GetBytes(maxStreak).Length);
 
           // size
           output.AddRange(maxSeriesSizeBytes);
-          Debug.WriteLine(maxSeriesSizeBytes.Length);
           output.AddRange(buffer.GetRange(index, maxSeriesSize));
 
           index += (maxStreak + 1) * maxSeriesSize;
@@ -148,10 +157,10 @@ namespace ZipZap {
 
         output.AddRange(BitConverter.GetBytes(0));
         output.AddRange(uniqueStreakCountBytes);
-        output.AddRange(buffer.GetRange(uniqueStreakStart, uniqueStreakCount));        
+        output.AddRange(buffer.GetRange(uniqueStreakStart, uniqueStreakCount));
       }
-      
+
       return output.ToArray();
-    }  
+    }
   }
 }
