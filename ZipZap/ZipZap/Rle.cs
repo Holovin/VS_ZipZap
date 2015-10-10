@@ -20,11 +20,19 @@ namespace ZipZap {
     }
 
     private bool CompareSeries(int index, int size) {
-      if (index + (2 * size) <= buffer.Count) {
-        return buffer.GetRange(index, size).SequenceEqual(buffer.GetRange(index + size, size));
+      if (index + (2 * size) > buffer.Count) {
+        return false;
       }
 
-      return false;
+      var limit = index + size;
+
+      for (var i = index; i < limit; i++) {
+        if (buffer[i] != buffer[i + size]) {
+          return false;
+        }
+      }
+
+      return true;
     }
 
     public byte[] Decompress() {
@@ -65,10 +73,12 @@ namespace ZipZap {
 
         var localIndex = index;
         var localStreak = 0;
-        var localSeriesSize = 1;
+        var localSeriesSize = 8;
 
         // find [ABC] - [ABC] from INDEX to file end       
-        while (localIndex < buffer.Count && localSeriesSize <= (buffer.Count - index) / 2)  {
+        var halfPart = (buffer.Count - index) / 2;
+
+        while (localIndex < buffer.Count && localSeriesSize <= halfPart)  {
           while (CompareSeries(localIndex, localSeriesSize)) {            
             // if [ABC ABC] then check [ABC [ABC ABC]] 
             localIndex += localSeriesSize;
