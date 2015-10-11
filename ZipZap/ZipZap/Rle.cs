@@ -58,6 +58,7 @@ namespace ZipZap {
         index += dataSize;
       }
 
+      progressIndicatorTotal.Report(index);
       return output.ToArray();
     }
 
@@ -65,16 +66,18 @@ namespace ZipZap {
       return await Task.Run(() => Decode(progressIndicatorTotal, ctx), ctx);
     }
 
-    public async Task<byte[]> Compress(IProgress<int> progressIndicatorTotal, CancellationToken ctx) {    
-      return await Task.Run(() => Encode(progressIndicatorTotal, ctx), ctx);     
+    public async Task<byte[]> Compress(int chunkLimit, IProgress<int> progressIndicatorTotal, CancellationToken ctx) {
+      return await Task.Run(() => Encode(chunkLimit, progressIndicatorTotal, ctx), ctx);     
     }
 
-    public byte[] Encode(IProgress<int> progressIndicatorTotal, CancellationToken ctx) {
+    public byte[] Encode(int chunkLimit, IProgress<int> progressIndicatorTotal, CancellationToken ctx) {
       var output = new List<byte>();
 
       var index = 0;
       var uniqueStreakStart = -1;
       var uniqueStreakCount = 0;
+
+      chunkLimit = chunkLimit == 0 ? buffer.Count : chunkLimit;
 
       do {
         progressIndicatorTotal.Report(index);
@@ -89,7 +92,7 @@ namespace ZipZap {
         // find [ABC] - [ABC] from INDEX to file end       
         var halfPart = (buffer.Count - index) / 2;
 
-        while (localIndex < buffer.Count && localSeriesSize <= halfPart) {
+        while (localIndex < buffer.Count && localSeriesSize <= halfPart && localSeriesSize < chunkLimit) {
           //progressIndicatorIter.Report(localIndex);
 
           while (CompareSeries(localIndex, localSeriesSize)) {
@@ -160,6 +163,7 @@ namespace ZipZap {
         output.AddRange(buffer.GetRange(uniqueStreakStart, uniqueStreakCount));
       }
 
+      progressIndicatorTotal.Report(index);
       return output.ToArray();
     }
   }

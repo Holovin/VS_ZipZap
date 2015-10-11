@@ -28,6 +28,9 @@
       this.ProgressBarTotal = new System.Windows.Forms.ProgressBar();
       this.LabelTotal = new System.Windows.Forms.Label();
       this.LabelPromo = new System.Windows.Forms.Label();
+      this.CheckBoxLimit = new System.Windows.Forms.CheckBox();
+      this.EditSize = new System.Windows.Forms.NumericUpDown();
+      ((System.ComponentModel.ISupportInitialize)(this.EditSize)).BeginInit();
       this.SuspendLayout();
       // 
       // ButtonEncode
@@ -76,24 +79,62 @@
       this.LabelPromo.Text = "by Alex Holovin (c) 2015\r\nThis is free Software, published under the BSD-3-Clause" +
     " license.";
       // 
+      // CheckBoxLimit
+      // 
+      this.CheckBoxLimit.AutoSize = true;
+      this.CheckBoxLimit.Checked = true;
+      this.CheckBoxLimit.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.CheckBoxLimit.Location = new System.Drawing.Point(12, 101);
+      this.CheckBoxLimit.Name = "CheckBoxLimit";
+      this.CheckBoxLimit.Size = new System.Drawing.Size(98, 17);
+      this.CheckBoxLimit.TabIndex = 7;
+      this.CheckBoxLimit.Text = "Chunk size limit";
+      this.CheckBoxLimit.UseVisualStyleBackColor = true;
+      this.CheckBoxLimit.CheckStateChanged += new System.EventHandler(this.CheckBoxLimit_CheckStateChanged);
+      // 
+      // EditSize
+      // 
+      this.EditSize.Location = new System.Drawing.Point(143, 98);
+      this.EditSize.Maximum = new decimal(new int[] {
+            2048,
+            0,
+            0,
+            0});
+      this.EditSize.Minimum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+      this.EditSize.Name = "EditSize";
+      this.EditSize.Size = new System.Drawing.Size(120, 20);
+      this.EditSize.TabIndex = 8;
+      this.EditSize.Value = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+      // 
       // FormApp
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(432, 105);
+      this.ClientSize = new System.Drawing.Size(432, 123);
+      this.Controls.Add(this.EditSize);
+      this.Controls.Add(this.CheckBoxLimit);
       this.Controls.Add(this.LabelPromo);
       this.Controls.Add(this.LabelTotal);
       this.Controls.Add(this.ProgressBarTotal);
       this.Controls.Add(this.ButtonDecode);
       this.Controls.Add(this.ButtonEncode);
       this.MaximizeBox = false;
-      this.MaximumSize = new System.Drawing.Size(440, 132);
       this.MinimumSize = new System.Drawing.Size(440, 132);
       this.Name = "FormApp";
       this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
       this.Text = "ZipZap!";
       this.Load += new System.EventHandler(this.FormApp_Load);
+      ((System.ComponentModel.ISupportInitialize)(this.EditSize)).EndInit();
       this.ResumeLayout(false);
+      this.PerformLayout();
 
     }
 
@@ -104,6 +145,8 @@
     private System.Windows.Forms.ProgressBar ProgressBarTotal;
     private System.Windows.Forms.Label LabelTotal;
     private System.Windows.Forms.Label LabelPromo;
+    private System.Windows.Forms.CheckBox CheckBoxLimit;
+    private System.Windows.Forms.NumericUpDown EditSize;
   }
 }
 

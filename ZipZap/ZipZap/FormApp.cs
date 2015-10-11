@@ -13,8 +13,10 @@ using System.Windows.Forms;
 
 namespace ZipZap {
   public partial class FormApp: Form {
+    private const string Ext = ".zipzap";
     private const string Filter = "ZipZap archives|*.zipzap";
     private readonly CancellationToken ctx = new CancellationToken();
+    private string fileNameTemp = "";
       
     public FormApp() {
       InitializeComponent();
@@ -29,6 +31,9 @@ namespace ZipZap {
       if (dialog.ShowDialog() != DialogResult.OK || !File.Exists(dialog.FileName)) {
         return;
       }
+
+      saveDialog.FileName = dialog.SafeFileName + Ext;
+      fileNameTemp = dialog.SafeFileName + Ext;
 
       if (saveDialog.ShowDialog() != DialogResult.OK) {
         return;
@@ -46,13 +51,21 @@ namespace ZipZap {
         ProgressBarTotal.Maximum = buffer.Length;
         ProgressBarTotalUpdate(0);
 
+        var limit = CheckBoxLimit.Checked ? Convert.ToInt32(EditSize.Value) : 0;
+
+        if (buffer.Length < limit) {
+          limit = 0;
+          MessageBox.Show(@"Limit > file size. Limits disabled");
+        }
+
         try {
-          var bytes = await rle.Compress(progressIndicatorTotal, this.ctx);
+          var bytes = await rle.Compress(limit, progressIndicatorTotal, this.ctx);
 
           using (var output = new FileStream(saveDialog.FileName, FileMode.Create)) {
             output.Write(bytes, 0, bytes.Length);
             output.Close();
           }
+          
         } catch (OperationCanceledException) {
           // reserved
 
@@ -69,7 +82,9 @@ namespace ZipZap {
         Filter = Filter
       };
 
-      var saveDialog = new SaveFileDialog();
+      var saveDialog = new SaveFileDialog() {
+        FileName = fileNameTemp.Substring(0, fileNameTemp.Length - Ext.Length)
+      };
 
       if (dialog.ShowDialog() != DialogResult.OK || !File.Exists(dialog.FileName)) {
         return;
@@ -98,11 +113,16 @@ namespace ZipZap {
             output.Write(bytes, 0, bytes.Length);
             output.Close();
           }
-        } catch (OperationCanceledException) {
+        }
+        catch (OperationCanceledException) {
           // reserved
 
-        } catch (Exception) {
+        }
+        catch (Exception) {
           // reserved
+        }
+        finally {
+          fileNameTemp = "";
         }
         
         MessageBox.Show(@"Done!");
@@ -115,6 +135,10 @@ namespace ZipZap {
     }
 
     private void FormApp_Load(object sender, EventArgs e) {
+    }
+
+    private void CheckBoxLimit_CheckStateChanged(object sender, EventArgs e) {
+      EditSize.Enabled = CheckBoxLimit.Checked;
     }
   }
 }
