@@ -82,12 +82,14 @@ namespace ZipZap {
         Filter = Filter
       };
 
-      var saveDialog = new SaveFileDialog() {
-        FileName = fileNameTemp.Substring(0, fileNameTemp.Length - Ext.Length)
-      };
+      var saveDialog = new SaveFileDialog();
 
       if (dialog.ShowDialog() != DialogResult.OK || !File.Exists(dialog.FileName)) {
         return;
+      }
+
+      if (dialog.SafeFileName != null) {
+        saveDialog.FileName = dialog.SafeFileName.Substring(0, dialog.SafeFileName.Length - Ext.Length);
       }
 
       if (saveDialog.ShowDialog() != DialogResult.OK) {
