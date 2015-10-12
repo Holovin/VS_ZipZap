@@ -82,9 +82,6 @@ namespace ZipZap {
       do {
         progressIndicatorTotal.Report(index);
 
-        var maxSeriesSize = 0;
-        var maxStreak = 0;
-
         var localIndex = index;
         var localStreak = 0;
         var localSeriesSize = 8;
@@ -93,18 +90,14 @@ namespace ZipZap {
         var halfPart = (buffer.Count - index) / 2;
 
         while (localIndex < buffer.Count && localSeriesSize <= halfPart && localSeriesSize < chunkLimit) {
-          //progressIndicatorIter.Report(localIndex);
-
           while (CompareSeries(localIndex, localSeriesSize)) {
             // if [ABC ABC] then check [ABC [ABC ABC]] 
             localIndex += localSeriesSize;
             localStreak++;
           }
-
-          // if "save" length is better then old
-          if (localStreak * localSeriesSize > maxStreak * maxSeriesSize) {
-            maxSeriesSize = localSeriesSize;
-            maxStreak = localStreak;
+          
+          if (localStreak > 0) {            
+            break;
           }
 
           localIndex = index;
@@ -113,7 +106,7 @@ namespace ZipZap {
         }
 
         // if not found
-        if (maxStreak == 0 || maxSeriesSize == 0) {
+        if (localStreak == 0) {
           // if first time unique - save start index to save
           if (uniqueStreakCount == 0) {
             uniqueStreakStart = index;
@@ -141,17 +134,17 @@ namespace ZipZap {
           }
 
           // save repeating part
-          var maxSeriesSizeBytes = BitConverter.GetBytes(maxSeriesSize);
+          var maxSeriesSizeBytes = BitConverter.GetBytes(localSeriesSize);
 
           //// Header
           // repeat count
-          output.AddRange(BitConverter.GetBytes(maxStreak));
+          output.AddRange(BitConverter.GetBytes(localStreak));
 
           // size
           output.AddRange(maxSeriesSizeBytes);
-          output.AddRange(buffer.GetRange(index, maxSeriesSize));
+          output.AddRange(buffer.GetRange(index, localSeriesSize));
 
-          index += (maxStreak + 1) * maxSeriesSize;
+          index += (localStreak + 1) * localSeriesSize;
         }
       } while (index < buffer.Count);
 
